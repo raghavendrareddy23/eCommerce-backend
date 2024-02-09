@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const adminRoutes = require('./routes/adminRoutes');
+// const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
 const categoryRoutes = require('./routes/categoryRoutes')
 const dotenv = require("dotenv");
@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use('/admin', adminRoutes);
+// app.use('/admin', adminRoutes);
 app.use('/user', userRoutes);
 app.use('/category', categoryRoutes);
 

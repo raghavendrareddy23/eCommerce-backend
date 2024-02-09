@@ -106,34 +106,28 @@ const getCategoryById = async (req, res) => {
 const updateCategory = async (req, res) => {
     try {
         const { categoryName, categoryStatus } = req.body;
-
-        // Find the category by its ID
         const category = await Category.findById(req.params.id);
         if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: "Category not found in the database"
-            });
+            return res.status(404).json({ success: false, message: "Category not found in the database" });
         }
 
-        // Delete the old image from Cloudinary if it exists
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
+        }
+
         if (category.cloudinary_id) {
             await cloudinary.uploader.destroy(category.cloudinary_id);
         }
 
-        // Upload the new image to Cloudinary
         const uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: 'images', public_id: categoryName });
 
-        // Update category details with the new image URL and Cloudinary ID
         category.categoryName = categoryName;
         category.categoryStatus = categoryStatus;
         category.categoryUrl = uploadResult.secure_url;
         category.cloudinary_id = uploadResult.public_id;
 
-        // Save the updated category to the database
         await category.save();
 
-        // Delete the uploaded file from the server
         fs.unlinkSync(req.file.path);
 
         res.status(200).json({
@@ -143,29 +137,23 @@ const updateCategory = async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({
-            success: false,
-            message: "Error"
-        });
+        res.status(500).json({ success: false, message: "Error" });
     }
 };
-
-
 
 const deleteCategory = async (req, res) => {
     try {
         const category = await Category.findById(req.params.id);
         if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: "Category not found in the database"
-            });
+            return res.status(404).json({ success: false, message: "Category not found in the database" });
         }
 
-        // Delete the image from Cloudinary
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
+        }
+
         await cloudinary.uploader.destroy(category.categoryUrl, { invalidate: true });
 
-        // Delete the category from the database
         await Category.findByIdAndDelete(req.params.id);
 
         res.status(200).json({
@@ -174,12 +162,10 @@ const deleteCategory = async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({
-            success: false,
-            message: "Error"
-        });
+        res.status(500).json({ success: false, message: "Error" });
     }
 };
+
 
 
 // Controller functions for CRUD operations on categories
