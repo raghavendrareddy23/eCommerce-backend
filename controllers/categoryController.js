@@ -1,61 +1,44 @@
 const Category = require('../models/category');
+const SubCategory = require('../models/subCategory');
+const Products = require('../models/products');
 const cloudinary = require('../utils/cloudinary');
 const upload = require('../utils/multer');
 const fs = require('fs');
 const uuid = require('uuid');
 
-// Function to upload image to Cloudinary
 const uploadImage = async (req, res, next) => {
     try {
+        // if (req.user.role !== 'admin') {
+        //     return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
+        // }
+       
         const folder = 'images'; 
         const result = await cloudinary.uploader.upload(req.file.path, { folder: folder });
-    
-        // Generate a unique identifier for categoryId
-        const categoryId = uuid.v4();
-
-        // Create a new record in the database for the uploaded file
+        
+        
         const category = new Category({
-            categoryId: categoryId,
-            categoryName: req.body.categoryName, 
-            categoryStatus: 'active', 
+            categoryName: req.body.categoryName,
             cloudinary_id: result.public_id,
             categoryUrl: result.secure_url
         });
         await category.save();
     
         res.status(200).json({
-          success: true,
-          folder: folder,
-          message: "Uploaded!",
-          data: result
+            success: true,
+            folder: folder,
+            message: "Uploaded!",
+            data: result
         });
-      } catch (err) {
+    } catch (err) {
         console.error(err);
         res.status(500).json({
-          success: false,
-          message: "Error"
+            success: false,
+            message: "Error"
         });
-      }
+    }
 };
 
 
-// const updateCategoryStatus = async (req, res) => {
-//     try {
-//         const category = await Category.findById(req.params.id);
-//         if (!category) {
-//             return res.status(404).json({ success: false, message: "Category not found" });
-//         }
-
-//         // Toggle category status
-//         category.categoryStatus = category.categoryStatus === 'active' ? 'inactive' : 'active';
-//         await category.save();
-
-//         res.status(200).json({ success: true, message: "Category status updated successfully", data: category });
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ success: false, message: "Error updating category status" });
-//     }
-// };
 
 const updateCategoryStatus = async (req, res) => {
     try {
@@ -141,30 +124,50 @@ const updateCategory = async (req, res) => {
     }
 };
 
+
 const deleteCategory = async (req, res) => {
     try {
-        const category = await Category.findById(req.params.id);
+        const categoryId = req.params.id;
+
+        // Find the category by ID
+        const category = await Category.findById(categoryId);
         if (!category) {
             return res.status(404).json({ success: false, message: "Category not found in the database" });
         }
 
+        // Check if the user is an admin
         if (req.user.role !== 'admin') {
             return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
         }
 
-        await cloudinary.uploader.destroy(category.categoryUrl, { invalidate: true });
+        // Find all subcategories associated with the category
+        const subCategories = await SubCategory.find({ category: categoryId });
+        const subCategoryIds = subCategories.map(subCategory => subCategory._id);
 
-        await Category.findByIdAndDelete(req.params.id);
+        // Find all products associated with the subcategories of the category
+        const productsToDelete = await Products.find({ subCategoryId: { $in: subCategoryIds } });
+
+        // Delete the products
+        await Products.deleteMany({ subCategoryId: { $in: subCategoryIds } });
+
+        // Delete all subcategories associated with the category
+        await SubCategory.deleteMany({ category: categoryId });
+
+        // Delete the category
+        await cloudinary.uploader.destroy(category.categoryUrl, { invalidate: true });
+        await Category.findByIdAndDelete(categoryId);
 
         res.status(200).json({
             success: true,
-            message: "Category deleted successfully"
+            message: "Category, associated subcategories, and products deleted successfully"
         });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: "Error" });
     }
 };
+
+
 
 
 
