@@ -66,7 +66,7 @@ const uploadImage = async (req, res, next) => {
 const getAllProducts = async (req, res) => {
     try {
       // Fetch all products from the database
-      const products = await Products.find().populate('subCategory');
+      const products = await Products.find().populate('subCategoryId');
   
       res.status(200).json({
         success: true,
