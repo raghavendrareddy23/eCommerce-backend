@@ -15,7 +15,8 @@ const uploadImage = async (req, res, next) => {
         const result = await cloudinary.uploader.upload(req.file.path, { folder: folder });
         
         // Find the Category by categoryName
-        const category = await Category.findOne({ categoryName: req.body.categoryName });
+        const {categoryName} = req.body;
+        const category = await Category.findOne({categoryName});
         if (!category) {
             return res.status(404).json({ success: false, message: "Category not found" });
         }
