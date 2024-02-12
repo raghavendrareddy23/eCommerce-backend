@@ -15,17 +15,18 @@ const uploadImage = async (req, res, next) => {
         const result = await cloudinary.uploader.upload(req.file.path, { folder: folder });
         
         // Find the Category by categoryName
-        const {categoryName} = req.body;
-        const category = await Category.findOne({categoryName});
+        const { subCategoryName, categoryName } = req.body;
+        const category = await Category.findOne({ categoryName: categoryName });
         if (!category) {
             return res.status(404).json({ success: false, message: "Category not found" });
         }
         
         // Create a new record in the database for the uploaded SubCategory
         const subCategory = new SubCategory({
-            subCategoryName: req.body.subCategoryName,
+            subCategoryName: subCategoryName,
             cloudinary_id: result.public_id,
-            subCategoryUrl: result.secure_url
+            subCategoryUrl: result.secure_url,
+            category: category._id // Assign the category ID to the subcategory
         });
         await subCategory.save();
     
@@ -43,6 +44,8 @@ const uploadImage = async (req, res, next) => {
         });
     }
 };
+
+            
 
 
 
