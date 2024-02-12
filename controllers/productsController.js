@@ -63,15 +63,16 @@ const uploadImage = async (req, res, next) => {
   };
   
 
-  const getAllProducts = async (req, res) => {
+ const getAllProducts = async (req, res) => {
     try {
-        // Fetch all products from the database and populate the 'subCategory' field
+        // Fetch all products from the database and populate the 'subCategoryId' field
         const products = await Products.find().populate({
-          path: 'subCategoryId',
-          populate: {
-              path: 'category',
-              model: 'Category'
-      });
+            path: 'subCategoryId',
+            populate: {
+                path: 'categoryId',
+                model: 'Category'
+            }
+        });
 
         res.status(200).json({
             success: true,
@@ -86,6 +87,7 @@ const uploadImage = async (req, res, next) => {
         });
     }
 };
+
 
   
   // Function to get a product by ID
