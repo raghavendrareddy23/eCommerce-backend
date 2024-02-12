@@ -65,6 +65,7 @@ const uploadImage = async (req, res, next) => {
 
   const getAllProducts = async (req, res) => {
     try {
+<<<<<<< HEAD
         // Fetch all products from the database and populate the 'subCategory' field
         const products = await Products.find().populate({
           path: 'subCategoryId',
@@ -72,6 +73,15 @@ const uploadImage = async (req, res, next) => {
               path: 'category',
               model: 'Category'
           }
+=======
+      // Fetch all products from the database
+      const products = await Products.find().populate('subCategoryId');
+  
+      res.status(200).json({
+        success: true,
+        message: "Products fetched successfully",
+        data: products,
+>>>>>>> 5385cc48ebfc198c9f5b4d774bd536ac9f32d2a3
       });
 
         res.status(200).json({
