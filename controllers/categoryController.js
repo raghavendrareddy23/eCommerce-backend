@@ -8,9 +8,9 @@ const uuid = require('uuid');
 
 const uploadImage = async (req, res, next) => {
     try {
-        // if (req.user.role !== 'admin') {
-        //     return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
-        // }
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
+        }
        
         const folder = 'images'; 
         const result = await cloudinary.uploader.upload(req.file.path, { folder: folder });
