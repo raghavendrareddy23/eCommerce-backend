@@ -63,24 +63,31 @@ const uploadImage = async (req, res, next) => {
   };
   
 
-const getAllProducts = async (req, res) => {
+  const getAllProducts = async (req, res) => {
     try {
-      // Fetch all products from the database
-      const products = await Products.find().populate('subCategory');
-  
-      res.status(200).json({
-        success: true,
-        message: "Products fetched successfully",
-        data: products,
+        // Fetch all products from the database and populate the 'subCategory' field
+        const products = await Products.find().populate({
+          path: 'subCategoryId',
+          populate: {
+              path: 'category',
+              model: 'Category'
+          }
       });
+
+        res.status(200).json({
+            success: true,
+            message: "Products fetched successfully",
+            data: products,
+        });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({
-        success: false,
-        message: "Error fetching products",
-      });
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching products",
+        });
     }
-  };
+};
+
   
   // Function to get a product by ID
   const getProductById = async (req, res) => {

@@ -22,9 +22,7 @@ const uploadImage = async (req, res, next) => {
         
         // Create a new record in the database for the uploaded SubCategory
         const subCategory = new SubCategory({
-            subCategoryName: req.body.subCategoryName, 
-            categoryName: category.categoryName,
-            category: category._id, // Assign the categoryId from the found Category
+            subCategoryName: req.body.subCategoryName,
             cloudinary_id: result.public_id,
             subCategoryUrl: result.secure_url
         });
