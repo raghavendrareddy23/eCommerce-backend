@@ -49,7 +49,7 @@ const uploadImage = async (req, res, next) => {
 
 const getAllSubCategories = async (req, res) => {
     try {
-        const subCategories = await SubCategory.find();
+        const subCategories = await SubCategory.find().populate('category');
         res.status(200).json(subCategories);
     } catch (error) {
         console.error(error);

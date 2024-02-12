@@ -1,15 +1,7 @@
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema({
-  subCategoryName: {
-    type: String,
-    required: true
-  },
-  subCategoryId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'SubCategory',
-    required: true
-  },
+  
   productName: {
     type: String,
     required: true
@@ -55,6 +47,11 @@ const productSchema = new mongoose.Schema({
     type: String,
     enum: ["active", "inactive"],
     default: "active"
+  },
+  subCategoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SubCategory',
+    required: true
   },
 }, {
   timestamps: true // Add timestamps to the schema

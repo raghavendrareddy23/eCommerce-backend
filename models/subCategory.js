@@ -5,11 +5,6 @@ const subCategorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category', 
-    required: true,
-  },
   cloudinary_id: {
     type: String,
   },
@@ -17,14 +12,15 @@ const subCategorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  categoryName: {
-    type: String,
-    required: true,
-  },
   subCategoryStatus: {
     type: String,
     enum: ["active", "inactive"],
     default: "active"
+  },
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category', 
+    required: true,
   },
 },
 {
