@@ -1,5 +1,4 @@
 const cloudinary = require("cloudinary").v2;
-const Category = require('../models/category');
 const SubCategory = require("../models/subCategory");
 const Products = require("../models/products");
 
@@ -64,16 +63,17 @@ const uploadImage = async (req, res, next) => {
   };
   
 
- const getAllProducts = async (req, res) => {
+  const getAllProducts = async (req, res) => {
     try {
-        // Fetch all products from the database and populate the 'subCategoryId' field
-        const products = await Products.find().populate({
-            path: 'subCategoryId',
-            populate: {
-                path: 'categoryId',
-                model: 'Category'
-            }
-        });
+        // Fetch all products from the database, populating subcategory and then category
+        const products = await Products.find()
+            .populate({
+                path: 'subCategoryId',
+                populate: {
+                    path: 'category',
+                    model: 'Category' // Adjust the model name if necessary
+                }
+            });
 
         res.status(200).json({
             success: true,
