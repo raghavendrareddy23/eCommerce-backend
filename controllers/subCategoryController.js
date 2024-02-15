@@ -102,8 +102,8 @@ const updateSubCategory = async (req, res) => {
             return res.status(404).json({ success: false, message: "Category not found" });
         }
 
-        // Find the subcategory by ID
-        const subCategory = await SubCategory.findById(req.params.id);
+        // Find the subcategory by ID and populate category field
+        let subCategory = await SubCategory.findByIdAndUpdate(req.params.id);
         if (!subCategory) {
             return res.status(404).json({ success: false, message: "Subcategory not found in the database" });
         }
@@ -112,22 +112,28 @@ const updateSubCategory = async (req, res) => {
             return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
         }
 
-        if (subCategory.cloudinary_id) {
-            await cloudinary.uploader.destroy(subCategory.cloudinary_id);
+        let uploadResult;
+
+        // Check if there is a file in the request
+        if (req.file) {
+            // If there's a file, upload it to Cloudinary and update the subCategoryUrl and cloudinary_id fields
+            uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: 'images', public_id: subCategoryName });
+            if (subCategory.cloudinary_id) {
+                await cloudinary.uploader.destroy(subCategory.cloudinary_id);
+            }
+            subCategory.cloudinary_id = uploadResult.public_id;
+            subCategory.subCategoryUrl = uploadResult.secure_url;
+            fs.unlinkSync(req.file.path);
         }
 
-        const uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: 'images', public_id: subCategoryName });
-
+        // Update subcategory fields
         subCategory.subCategoryName = subCategoryName;
         subCategory.subCategoryStatus = subCategoryStatus;
-        subCategory.categoryName = category.categoryName;
-        subCategory.category = category._id,
-        subCategory.subCategoryUrl = uploadResult.secure_url;
-        subCategory.cloudinary_id = uploadResult.public_id;
+        subCategory.categoryName = categoryName;
+        subCategory.category = category._id;
 
+        // Save the updated subcategory
         await subCategory.save();
-
-        fs.unlinkSync(req.file.path);
 
         res.status(200).json({
             success: true,
