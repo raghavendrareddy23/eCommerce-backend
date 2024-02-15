@@ -86,10 +86,11 @@ const getCategoryById = async (req, res) => {
     }
 };
 
+
 const updateCategory = async (req, res) => {
     try {
         const { categoryName, categoryStatus } = req.body;
-        const category = await Category.findById(req.params.id);
+        const category = await Category.findByIdAndUpdate(req.params.id);
         if (!category) {
             return res.status(404).json({ success: false, message: "Category not found in the database" });
         }
@@ -102,12 +103,18 @@ const updateCategory = async (req, res) => {
             await cloudinary.uploader.destroy(category.cloudinary_id);
         }
 
-        const uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: 'images', public_id: categoryName });
-
+        
+        if(req.file){
+            const uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: 'images', public_id: categoryName });
+            var image = uploadResult.secure_url;
+            
+            category.cloudinary_id = image.public_id;
+        }
         category.categoryName = categoryName;
         category.categoryStatus = categoryStatus;
-        category.categoryUrl = uploadResult.secure_url;
-        category.cloudinary_id = uploadResult.public_id;
+        category.categoryUrl = req.file ? image : category.categoryUrl;
+        category.categoryUrl = image;
+        
 
         await category.save();
 
