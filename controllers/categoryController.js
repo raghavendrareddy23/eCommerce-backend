@@ -89,47 +89,43 @@ const getCategoryById = async (req, res) => {
 
 const updateCategory = async (req, res) => {
     try {
-        const { categoryName, categoryStatus } = req.body;
-        const category = await Category.findByIdAndUpdate(req.params.id);
-        if (!category) {
-            return res.status(404).json({ success: false, message: "Category not found in the database" });
-        }
-
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
-        }
-
-        if (category.cloudinary_id) {
-            await cloudinary.uploader.destroy(category.cloudinary_id);
-        }
-
-        
-        if(req.file){
-            const uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: 'images', public_id: categoryName });
-            var image = uploadResult.secure_url;
-            
-            category.cloudinary_id = image.public_id;
-        }
-        category.categoryName = categoryName;
-        category.categoryStatus = categoryStatus;
-        category.categoryUrl = req.file ? image : category.categoryUrl;
-        category.categoryUrl = image;
-        
-
-        await category.save();
-
+      const { categoryName, categoryStatus } = req.body;
+      const category = await Category.findByIdAndUpdate(req.params.id);
+      if (!category) {
+        return res.status(404).json({ success: false, message: "Category not found in the database" });
+      }
+  
+      if (req.user.role !== "admin") {
+        return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
+      }
+  
+      if (category.cloudinary_id) {
+        await cloudinary.uploader.destroy(category.cloudinary_id);
+      }
+  
+      let uploadResult;
+      if (req.file) {
+        uploadResult = await cloudinary.uploader.upload(req.file.path, { folder: "images", public_id: categoryName });
+        category.cloudinary_id = uploadResult.public_id;
         fs.unlinkSync(req.file.path);
-
-        res.status(200).json({
-            success: true,
-            message: "Category updated successfully",
-            updatedCategory: category
-        });
+      }
+  
+      category.categoryName = categoryName;
+      category.categoryStatus = categoryStatus;
+      category.categoryUrl = uploadResult ? uploadResult.secure_url : category.categoryUrl;
+  
+      await category.save();
+  
+      res.status(200).json({
+        success: true,
+        message: "Category updated successfully",
+        updatedCategory: category
+      });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: "Error" });
+      console.error(err);
+      res.status(500).json({ success: false, message: "Error updating category" });
     }
-};
+  };
 
 
 const deleteCategory = async (req, res) => {
