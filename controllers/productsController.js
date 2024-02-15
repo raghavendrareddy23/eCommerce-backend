@@ -139,45 +139,46 @@ const uploadImage = async (req, res, next) => {
 };
 
 const updateProduct = async (req, res) => {
-    try {
+  try {
       const productId = req.params.id;
       const { subCategoryName, productName, productDescription, price, sellPrice, stock, productStatus } = req.body;
-  
+
       // Find the existing product by ID
-      let product = await Products.findById(productId);
+      let product = await Products.findByIdAndUpdate(productId);
       if (!product) {
-        return res.status(404).json({ success: false, message: "Product not found" });
+          return res.status(404).json({ success: false, message: "Product not found" });
       }
-  
+
       // Check if the user is an admin
       if (req.user.role !== 'admin') {
-        return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
+          return res.status(403).json({ success: false, message: "Forbidden: Only admins have access" });
       }
-  
+
       // Obtain the SubCategory by subCategoryName
       const subCategory = await SubCategory.findOne({ subCategoryName });
       if (!subCategory) {
-        return res.status(404).json({ success: false, message: "SubCategory not found" });
+          return res.status(404).json({ success: false, message: "SubCategory not found" });
       }
-  
+
       // Delete previous images from Cloudinary
       if (product.imageGallery && product.imageGallery.length > 0) {
-        for (const imageUrl of product.imageGallery) {
-          const publicId = imageUrl.split("/").pop().split(".")[0];
-          await cloudinary.uploader.destroy(publicId);
-        }
+          for (const imageUrl of product.imageGallery) {
+              const publicId = imageUrl.split("/").pop().split(".")[0];
+              await cloudinary.uploader.destroy(publicId);
+          }
       }
-  
+
       // Upload new images to Cloudinary if provided
       let updatedImageGallery = [];
       if (req.files && req.files.length > 0) {
-        const folder = "images/products";
-        for (const file of req.files) {
-          const result = await cloudinary.uploader.upload(file.path, { folder: folder });
-          updatedImageGallery.push(result.secure_url);
-        }
+          const folder = "images/products";
+          for (const file of req.files) {
+              const result = await cloudinary.uploader.upload(file.path, { folder: folder });
+              updatedImageGallery.push(result.secure_url);
+          }
       }
-  
+      
+
       // Update product fields
       product.subCategoryName = subCategoryName || product.subCategoryName;
       product.subCategoryId = subCategory._id; // Assign the subCategoryId from the found SubCategory
@@ -187,21 +188,28 @@ const updateProduct = async (req, res) => {
       product.imageGallery = updatedImageGallery.length > 0 ? updatedImageGallery : product.imageGallery;
       product.price = price || product.price;
       product.sellPrice = sellPrice || product.sellPrice;
+      let discount = 0;
+      if (price !== product.price || sellPrice !== product.sellPrice) {
+          discount = Math.round(((product.price - product.sellPrice) / product.price) * 100);
+          // console.log(discount);
+      }
       product.stock = stock || product.stock;
-  
+      product.discount = discount;
+
       // Save updated product to the database
       await product.save();
-  
+
       res.status(200).json({
-        success: true,
-        message: "Product updated successfully",
-        updatedProduct: product
+          success: true,
+          message: "Product updated successfully",
+          updatedProduct: product
       });
-    } catch (err) {
+      // console.log(product);
+  } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: "Error updating product" });
-    }
-  };
+  }
+};
   
 
   const deleteProduct = async (req, res) => {
