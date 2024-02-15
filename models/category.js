@@ -9,7 +9,6 @@ const categorySchema = new mongoose.Schema(
     },
     categoryUrl: {
       type: String,
-      required: true,
     },
     cloudinary_id: {
       type: String, // Store the public ID from Cloudinary
