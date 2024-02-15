@@ -10,7 +10,6 @@ const subCategorySchema = new mongoose.Schema({
   },
   subCategoryUrl: {
     type: String,
-    required: true,
   },
   subCategoryStatus: {
     type: String,
