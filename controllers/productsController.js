@@ -1,4 +1,5 @@
 const cloudinary = require("cloudinary").v2;
+const Category = require('../models/category');
 const SubCategory = require("../models/subCategory");
 const Products = require("../models/products");
 
