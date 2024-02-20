@@ -13,6 +13,7 @@ const isAuthenticated = async (req, res, next) => {
             throw new Error();
         }
         req.user = user;
+        req.userId = user._id;
         next();
     } catch (error) {
         res.status(401).json({ message: 'Please authenticate' });
