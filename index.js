@@ -5,6 +5,7 @@ const userRoutes = require('./routes/userRoutes');
 const categoryRoutes = require('./routes/categoryRoutes')
 const subCategoryRoutes = require('./routes/subCategoryRoutes');
 const productRoutes = require('./routes/productRoutes');
+const cartRoutes = require('./routes/cartRoutes')
 const dotenv = require("dotenv");
 const connectDB = require('./utils/db');
 const cors = require('cors');
@@ -21,6 +22,7 @@ app.use('/user', userRoutes);
 app.use('/category', categoryRoutes);
 app.use('/subcategory', subCategoryRoutes);
 app.use('/product', productRoutes);
+app.use('/cart', cartRoutes);
 
 
 connectDB();
