@@ -19,13 +19,7 @@ const cartItemSchema = new mongoose.Schema({
             min: [1, 'Quantity can not be less then 1.'],
             deafult: 1
         },
-        price: Number
     }],
-    bill: {
-        type: Number,
-        required: true,
-        default: 0
-    }
 });
 
 module.exports = mongoose.model('CartItem', cartItemSchema);
