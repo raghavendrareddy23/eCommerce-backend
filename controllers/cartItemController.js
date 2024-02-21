@@ -3,9 +3,9 @@ const Item = require('../models/products');
 
 const addCartItem = async (req, res) => {
     let userId = req.params.userId;
-    
+
     if (!userId && req.user) {
-        userId = req.user._id; 
+        userId = req.user._id;
     }
 
     if (!userId) {
@@ -22,27 +22,25 @@ const addCartItem = async (req, res) => {
             return res.status(404).send('Item not found!');
         }
 
-        const price = item.sellPrice;
-        const name = item.productName;
-
         if (cart) {
-            let itemIndex = cart.items.findIndex(p => p.productId == productId);
+            let existingItem = cart.items.find(item => item.productId === productId);
 
-            if (itemIndex > -1) {
-                let productItem = cart.items[itemIndex];
-                productItem.quantity += quantity;
-                cart.items[itemIndex] = productItem;
+            if (existingItem) {
+                // Product already exists in the cart, return message
+                return res.status(400).send('Product is already in the cart');
             } else {
-                cart.items.push({ productId, name, quantity, price });
+                // Product does not exist in the cart, push a new item
+                cart.items.push({ productId, quantity });
+                cart = await cart.save();
+                return res.status(201).send(cart);
             }
-            cart.bill += quantity * price;
-            cart = await cart.save();
-            return res.status(201).send(cart);
         } else {
+            // If cart does not exist, create a new one
             const newCart = await Cart.create({
                 userId,
-                items: [{ productId, name, quantity, price }],
-                bill: quantity * price
+                items: [{ productId, quantity }],
+                // Assuming price needs to be fetched from the item
+                bill: item.price * quantity
             });
             return res.status(201).send(newCart);
         }
@@ -51,6 +49,7 @@ const addCartItem = async (req, res) => {
         res.status(500).send("Something went wrong");
     }
 }
+
 
 
 const getCartItems = async (req, res) => {
@@ -95,7 +94,6 @@ const updateCartItem = async (req, res) => {
                 productItem.quantity = quantity;
                 cart.items[itemIndex] = productItem;
             }
-            cart.bill = cart.items.reduce((sum, item) => sum + item.price * item.quantity,0);
             cart = await cart.save();
             return res.status(201).send(cart);
         }     
@@ -110,7 +108,7 @@ const deleteCartItemById = async (req, res) => {
     const userId = req.params.userId;
     const itemId = req.params.itemId;
     try {
-        let cart = await Cart.findOneAndUpdate(
+        const cart = await Cart.findOneAndUpdate(
             { userId: userId },
             { $pull: { items: { _id: itemId } } },
             { new: true }
@@ -118,15 +116,14 @@ const deleteCartItemById = async (req, res) => {
         if (!cart) {
             return res.status(404).send("Cart not found");
         }
-        // Recalculate the bill after item removal
-        cart.bill = cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
-        cart = await cart.save();
-        return res.status(200).send(cart);
+        return res.status(200).send("Item deleted successfully from the cart");
     } catch (err) {
         console.log(err);
         res.status(500).send("Something went wrong");
     }
 }
+
+
 
 const deleteAllCartItems = async (req, res) => {
     const userId = req.params.userId;
