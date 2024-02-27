@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
 
-exports.userSignup = async (req, res) => {
+exports.signup = async (req, res) => {
   try {
     const { username, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -19,45 +19,58 @@ exports.userSignup = async (req, res) => {
   }
 };
 
-exports.userLogin = async (req, res) => {
+exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: "Invalid password" });
+
+    let role = 'user';
+    if (user.role === 'admin') {
+      role = 'admin';
     }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
-    res.status(200).json({ token, username });
+
+    // Check the user's role before attempting to login
+    if (role === 'admin') {
+      await adminLogin(req, res, user, password);
+    } else {
+      await userLogin(req, res, user, password);
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-exports.adminLogin = async (req, res) => {
+const userLogin = async (req, res, user, password) => {
   try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username }); 
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    if (user.role !== 'admin') {
-      return res.status(403).json({ message: "Unauthorized: Only admins can access" });
-    }
-
     const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ userId: user._id, role: 'user' }, process.env.JWT_SECRET);
 
-    res.status(200).json({ token, username });
+    res.status(200).json({ token, username: user.username, role: 'user' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const adminLogin = async (req, res, user, password) => {
+  try {
+    const isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    const token = jwt.sign({ userId: user._id, role: 'admin' }, process.env.JWT_SECRET);
+
+    res.status(200).json({ token, username: user.username, role: 'admin' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
