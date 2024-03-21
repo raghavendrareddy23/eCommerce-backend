@@ -53,21 +53,26 @@ const addCartItem = async (req, res) => {
 
 
 const getCartItems = async (req, res) => {
-    const userId = req.params.id;
-    try{
-        let cart = await Cart.findOne({userId});
-        if(cart && cart.items.length>0){
-            res.send(cart);
+    try {
+        if (!req.user) {
+            console.log("User is not authenticated");
+            return res.status(401).send("Unauthorized");
         }
-        else{
-            res.send(null);
+
+        const userId = req.params.id;
+
+        let cart = await Cart.findOne({ userId });
+
+        if (cart && cart.items.length > 0) {
+            return res.send(cart);
+        } else {
+            return res.send(null);
         }
+    } catch (err) {
+        console.error("Error fetching cart:", err);
+        return res.status(500).send("Something went wrong");
     }
-    catch(err){
-        console.log(err);
-        res.status(500).send("Something went wrong");
-    }
-}
+};
 
 const updateCartItem = async (req, res) => {
     const userId = req.params.id;
