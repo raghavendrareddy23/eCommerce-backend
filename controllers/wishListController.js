@@ -13,7 +13,7 @@ const addToWishList = async (req, res) => {
         return res.status(401).send('User not authenticated');
     }
 
-    const { productId} = req.body;
+    const { productId } = req.body;
 
     try {
         let wishList = await WishList.findOne({ userId });
@@ -24,18 +24,16 @@ const addToWishList = async (req, res) => {
         }
 
         if (wishList) {
-            let existingItem = wishList.items.find(item => item.productId === productId);
+            let existingItem = wishList.items.find(item => item.productId.equals(productId));
 
             if (existingItem) {
-                return res.status(400).send('Product is already in the wish list');
+                return res.status(400).send('Product is already in the wishlist');
             } else {
-                // Product does not exist in the cart, push a new item
-                wishList.items.push({ productId});
+                wishList.items.push({ productId });
                 wishList = await wishList.save();
                 return res.status(201).send(wishList);
             }
         } else {
-            // If cart does not exist, create a new one
             const newWishList = await WishList.create({
                 userId,
                 items: [{ productId}],
@@ -46,9 +44,9 @@ const addToWishList = async (req, res) => {
         console.log(err);
         res.status(500).send("Something went wrong");
     }
-};
+}
 
-// Get wish list with populated product details
+
 const getWishList = async (req, res) => {
     const userId = req.params.userId;
     try {
@@ -63,7 +61,6 @@ const getWishList = async (req, res) => {
     }
 };
 
-// Remove item from wish list
 const removeFromWishList = async (req, res) => {
     const userId = req.params.userId;
     const productId = req.params.productId;
