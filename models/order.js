@@ -13,13 +13,17 @@ const OrderSchema = new mongoose.Schema({
         quantity: {
             type: Number,
             required: true,
-            min: [1, 'Quantity can not be less then 1.']
+            min: [1, 'Quantity cannot be less than 1.']
         },
     }],
+    totalBill: {
+        type: Number,
+        default: 0
+    },
     date_added: {
         type: Date,
         default: Date.now
     }
-})
+});
 
-module.exports = Order = mongoose.model('order',OrderSchema);
+module.exports = Order = mongoose.model('Order', OrderSchema);
