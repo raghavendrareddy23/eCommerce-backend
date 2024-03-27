@@ -9,6 +9,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const wishListRoutes = require('./routes/wishListRoutes');
 const addressRoutes = require('./routes/addressRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const couponRoutes = require('./routes/couponRoutes');
 const dotenv = require("dotenv");
 const connectDB = require('./utils/db');
 const cors = require('cors');
@@ -29,6 +30,7 @@ app.use('/cart', cartRoutes);
 app.use('/wishlist', wishListRoutes);
 app.use('/address', addressRoutes);
 app.use('/orders', orderRoutes);
+app.use('/coupon', couponRoutes);
 
 
 connectDB();
