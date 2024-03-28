@@ -87,19 +87,22 @@ module.exports.get_orders = async (req, res) => {
 };
 
 module.exports.get_order_by_id = async (req, res) => {
-    try {
-        const { userId, productId } = req.params;
-        const orders = await Order.find({ userId: userId, 'items.productId': productId }).populate('items.productId');
+  try {
+      const { userId, productId } = req.params;
+      
+      const orders = await Order.find({ userId: userId, 'items.productId': productId })
+                                 .sort({ date_added: -1 })
+                                 .limit(1) 
+                                 .populate('items.productId');
 
-        if (orders.length === 0) {
-            return res.status(404).json({ message: 'No orders found for the specified product and user' });
-        }
+      if (orders.length === 0) {
+          return res.status(404).json({ message: 'No orders found for the specified product and user' });
+      }
 
-        res.json(orders);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Internal server error");
-    }
+      res.json(orders);
+  } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal server error");
+  }
 };
-
 
