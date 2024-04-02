@@ -3,14 +3,27 @@ const User = require('../models/user');
 const Order = require('../models/order');
 const Coupon = require('../models/coupon'); 
 const Products = require("../models/products");
+const Address = require("../models/address");
 
 
 module.exports.checkout = async (req, res) => {
   try {
     const userId = req.params.id;
-    const couponId = req.body.couponId;
+    const { addressId, couponId } = req.body; 
 
     console.log("User ID:", userId);
+    console.log("Address ID:", addressId); 
+
+    if (!addressId) {
+      return res.status(400).send("Address ID is required");
+    }
+
+    // Check if the address exists
+    const address = await Address.findById(addressId);
+    if (!address) {
+      return res.status(400).send("Invalid address ID");
+    }
+
     console.log("Coupon ID:", couponId);
 
     const cart = await Cart.findOne({ userId });
@@ -55,8 +68,9 @@ module.exports.checkout = async (req, res) => {
     const order = new Order({
       userId,
       items: cart.items,
+      addressId: addressId,
       totalBill,
-      coupon: couponId || null, 
+      coupon: couponId || null,
     });
 
     console.log("Order:", order);
@@ -67,7 +81,7 @@ module.exports.checkout = async (req, res) => {
 
     console.log("Order saved successfully");
 
-    return res.status(201).json({message:"Order Saved Successfully", order});
+    return res.status(201).json({ message: "Order Saved Successfully", order });
   } catch (error) {
     console.error(error);
     res.status(500).send("Something went wrong");
@@ -75,10 +89,14 @@ module.exports.checkout = async (req, res) => {
 };
 
 
+
+
+
+
 module.exports.get_orders = async (req, res) => {
   try {
     const userId = req.params.id;
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 }).populate('items.productId');
+    const orders = await Order.find({ userId }).sort({ date_added: -1 }).populate('items.productId').populate('addressId');
     res.json(orders);
   } catch (error) {
     console.error(error);
@@ -91,9 +109,10 @@ module.exports.get_order_by_id = async (req, res) => {
       const { userId, productId } = req.params;
       
       const orders = await Order.find({ userId: userId, 'items.productId': productId })
-                                 .sort({ date_added: -1 })
+                                 .sort({ date_added: -1 }) 
                                  .limit(1) 
-                                 .populate('items.productId');
+                                 .populate('items.productId')
+                                 .populate('addressId');
 
       if (orders.length === 0) {
           return res.status(404).json({ message: 'No orders found for the specified product and user' });
@@ -105,4 +124,6 @@ module.exports.get_order_by_id = async (req, res) => {
       res.status(500).send("Internal server error");
   }
 };
+
+
 
