@@ -62,31 +62,50 @@ const uploadImage = async (req, res, next) => {
     }
   };
   
+const getAllProducts = async (req, res) => {
+  const page = parseInt(req.query.page) || 1; 
+  const pageSize = 6; 
+  const skip = (page - 1) * pageSize;
 
-  const getAllProducts = async (req, res) => {
-    try {
-        // Fetch all products from the database, populating subcategory and then category
-        const products = await Products.find()
-            .populate({
-                path: 'subCategoryId',
-                populate: {
-                    path: 'category',
-                    model: 'Category' // Adjust the model name if necessary
-                }
-            });
+  try {
+    const totalProducts = await Products.countDocuments(); 
 
-        res.status(200).json({
-            success: true,
-            message: "Products fetched successfully",
-            data: products,
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({
-            success: false,
-            message: "Error fetching products",
-        });
-    }
+    const allProducts = await Products.find()
+      .populate({
+        path: "subCategoryId",
+        populate: {
+          path: "category",
+          model: "Category",
+        },
+      })
+      .skip(skip)
+      .limit(pageSize);
+
+    const activeProducts = allProducts.filter(
+      (product) => product.productStatus === "active"
+    );
+    const inactiveProducts = allProducts.filter(
+      (product) => product.productStatus === "inactive"
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Products fetched successfully",
+      data: {
+        totalPages: Math.ceil(totalProducts / pageSize),
+        currentPage: page,
+        allProducts,
+        activeProducts,
+        inactiveProducts,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching products",
+    });
+  }
 };
 
 
