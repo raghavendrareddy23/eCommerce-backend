@@ -52,7 +52,11 @@ const uploadImage = async (req, res, next) => {
 const getAllSubCategories = async (req, res) => {
     try {
         const subCategories = await SubCategory.find().populate('category');
-        res.status(200).json(subCategories);
+        const allSubCategories = subCategories;
+        const activeSubCategories = subCategories.filter(subCategory => subCategory.subCategoryStatus === 'active');
+        const inactiveSubCategories = subCategories.filter(subCategory => subCategory.subCategoryStatus !== 'active');
+        
+        res.status(200).json({ success: true, allSubCategories, activeSubCategories, inactiveSubCategories });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Error fetching subcategories" });
