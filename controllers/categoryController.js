@@ -64,13 +64,18 @@ const updateCategoryStatus = async (req, res) => {
 
 
 const getAllCategories = async (req, res) => {
-    try {
-        const categories = await Category.find();
-        res.status(200).json({ success: true, data: categories });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: "Error fetching categories" });
-    }
+  try {
+    const categories = await Category.find();
+    const allCategories = categories;
+    const activeCategories = categories.filter(category => category.categoryStatus === "active");
+    const inactiveCategories = categories.filter(category => category.categoryStatus !== "active");
+    res.status(200).json({ success: true, allCategories, activeCategories, inactiveCategories });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ success: false, message: "Error fetching categories" });
+  }
 };
 
 const getCategoryById = async (req, res) => {
